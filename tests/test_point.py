@@ -31,6 +31,20 @@ def test_point_query_nan_nodata(interpolate):
     ) == [1.0, None, None]
 
 
+@pytest.mark.parametrize("nodata", [2**64, 10**20])
+@pytest.mark.parametrize("interpolate", ["nearest", "bilinear"])
+def test_point_query_large_integer_nodata(nodata, interpolate):
+    data = np.array([[1.0, nodata], [3.0, 4.0]], dtype="float64")
+    points = [{"type": "Point", "coordinates": xy} for xy in [(0.75, 1.25), (1.5, 1.5)]]
+    assert point_query(
+        points,
+        data,
+        affine=Affine(1, 0, 0, 0, -1, 2),
+        nodata=nodata,
+        interpolate=interpolate,
+    ) == [1.0, None]
+
+
 def test_unitxy_ul():
     win, unitxy = point_window_unitxy(245300, 1000073, affine)
     assert win == ((30, 32), (38, 40))
