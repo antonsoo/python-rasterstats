@@ -559,6 +559,18 @@ def test_empty_vector_file(tmp_path, engine):
     assert list(read_features(path, engine=engine)) == []
 
 
+@pytest.mark.parametrize("filename", ["123", "{}"])
+@pytest.mark.parametrize("as_path", [False, True])
+def test_json_like_filename(tmp_path, monkeypatch, filename, as_path):
+    collection = read_featurecollection(polygons)
+    monkeypatch.chdir(tmp_path)
+    path = Path(filename)
+    path.write_text(json.dumps(collection))
+    features = list(read_features(path if as_path else filename))
+    assert len(features) == len(target_geoms)
+    _compare_geomlists([shape(f["geometry"]) for f in features], target_geoms)
+
+
 def test_feature_generator_chunk_size(tmp_path):
     """Reading with default engine vs alternative chunk sizes,
     all result in equivalent feature dicts."""

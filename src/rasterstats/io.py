@@ -4,6 +4,7 @@ import warnings
 from collections.abc import Iterable, Mapping
 from json import JSONDecodeError
 from os import PathLike
+from os.path import exists
 
 import numpy as np
 import pyogrio
@@ -193,9 +194,13 @@ def read_features(obj, layer=0, engine=None, chunk_size=DEFAULT_CHUNK_SIZE):
     features_iter = None
     if isinstance(obj, (str, PathLike)):
         obj = str(obj)
-        try:
-            mapping = json.loads(obj)
-        except (ValueError, JSONDecodeError):
+        mapping = None
+        if not exists(obj):
+            try:
+                mapping = json.loads(obj)
+            except (ValueError, JSONDecodeError):
+                pass
+        if mapping is None:
             if _is_vector_file(obj, layer):
                 features_iter = feature_generator(
                     obj, layer, engine=engine, chunk_size=chunk_size
